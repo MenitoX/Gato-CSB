@@ -1,4 +1,3 @@
-from asyncore import _socket
 import socket
 
 HOST = "127.0.0.1"  # server IP
@@ -25,16 +24,16 @@ def returnCharacter(n : int):
 # Prints board
 def printBoard(board : list):
     auxBoard = [(returnCharacter(pos) for pos in row) for row in board]
-    print(". 0| 1 | 2 ")
-    print("0 {board[0]}| {board[1]} | {board[2]}")
-    print("---+---+---")
-    print("1 {board[3]}| {board[4]} | {board[5]}")
-    print("---+---+---")
-    print("2 {board[6]}| {board[7]} | {board[8]}")
+    print(f". 0| 1 | 2 ")
+    print(f"0 {board[0]}| {board[1]} | {board[2]}")
+    print(f"---+---+---")
+    print(f"1 {board[3]}| {board[4]} | {board[5]}")
+    print(f"---+---+---")
+    print(f"2 {board[6]}| {board[7]} | {board[8]}")
     return
 
 
-def playTurn(s_tcp : _socket, board : list):
+def playTurn(s_tcp, board : list):
     printBoard(board)
     pos = input("Ingrese su jugada (x,y)")
     x,y = pos.strip().split(",")
@@ -60,7 +59,7 @@ def playTurn(s_tcp : _socket, board : list):
     else: 
         return 0
 
-def playGame(s_tcp : _socket):
+def playGame(s_tcp):
     print("--------Comienza el Juego--------")
     board = [[0,0,0], [0,0,0], [0,0,0]] # Init board
     while True: # TODO : Add error count to close connection ? 
@@ -82,7 +81,7 @@ def main():
     #s_tcp.sendall(bin(option))
     option = ""
     while option != "1" and option != "2":
-        option = input("- Seleccione una opción\n1-Jugar\n2-Salir")
+        option = input("- Seleccione una opción\n1-Jugar\n2-Salir\n")
     s_tcp.sendall(option.encode('latin-1'))
     res = s_tcp.recv(1024).decode('ascii')
     if res == "OK":

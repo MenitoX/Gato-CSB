@@ -1,4 +1,3 @@
-from asyncore import _socket
 import socket
 
 HOST = "127.0.0.1"  # localhost IP
@@ -15,35 +14,35 @@ def createSocketTcp():
     s_tcp.bind((HOST, PORT_TCP))
     s_tcp.listen()
     conn, addr = s_tcp.accept()
-    print("Connected with {addr}")
+    print(f"Connected with {addr}")
     return s_tcp, conn, addr 
 
 def notifSocketTcp(data, mode):
     if mode == "GET":
-        print("Mensaje de socket TCP recivido con data : {data}")
+        print(f"Mensaje de socket TCP recivido con data : {data}")
     else:
-        print("Mensaje de socket TCP enviado con data : {data}")
+        print(f"Mensaje de socket TCP enviado con data : {data}")
 
 def notifSocketUdp(data, mode):
     if mode == "GET":
-        print("Mensaje de socket UDP recivido con data : {data}")
+        print(f"Mensaje de socket UDP recivido con data : {data}")
     else:
-        print("Mensaje de socket UDP enviado con data : {data}")
+        print(f"Mensaje de socket UDP enviado con data : {data}")
 
 def createSocketUdp(port):
     s_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     addr = (HOST, port)
     return s_udp, addr
 
-def checkStatusUdp(s_udp : _socket, addr : tuple):
+def checkStatusUdp(s_udp, addr : tuple):
     # Sending
-    print("Mandando check de estado a Gato con dirreción {addr}")
-    s_udp.sendto("STATUS", addr)
+    print(f"Mandando check de estado a Gato con dirreción {addr}")
+    s_udp.sendto(b"STATUS", addr)
     # Receiving
     print("Esperando respuesta STATUS de Gato")
     data, server = s_udp.recvfrom(1024)
     data = data.decode('ascii')
-    print("Recivido {data}")
+    print(f"Recivido {data}")
     return data
 
 # Checks result, x and y are the curr play position and player is 0 -> bot , 1 -> client
@@ -74,7 +73,7 @@ def checkResult(board : list, x : str, y : str, player : int):
     else:
         return 0 # NONE
 
-def playRound(board : list, conn : _socket, udp_play_port : int):
+def playRound(board : list, conn, udp_play_port : int):
     pos = conn.recv(1024).decode('ascii')
     notifSocketTcp(pos, "GET")
     x,y = pos.split(",")
@@ -93,12 +92,13 @@ def playRound(board : list, conn : _socket, udp_play_port : int):
         return 0
     
     s_udp, addr = createSocketUdp(udp_play_port)
-    s_udp.sendall(b'PLAY', addr)
-    notifSocketUdp('PLAY', "POST")
+    topic = "PLAY-"+pos
+    s_udp.sendall(topic.encode("latin-1"), addr)
+    notifSocketUdp(topic, "POST")
     data, server = s_udp.recvfrom(1024)
     data = data.decode("ascii")
     notifSocketUdp(data, "GET")
-    pos, port = data.split(",") #
+    pos, port = data.split("-") #
     
     x,y = pos.split(",")
     board[int(y)][int(x)] = BOT
@@ -118,7 +118,7 @@ def playRound(board : list, conn : _socket, udp_play_port : int):
         return port
     
 
-def playGame(conn : _socket, udp_play_port : int):
+def playGame(conn, udp_play_port : int):
     board = [[0,0,0], [0,0,0], [0,0,0]]
     while True:
         res = playRound(board, conn, udp_play_port)
